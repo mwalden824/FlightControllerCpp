@@ -163,8 +163,8 @@ V3F QuadControl::RollPitchControl(V3F accelCmd, Quaternion<float> attitude, floa
 
   if (collThrustCmd > 0.0)
   {
-      float targetR13 = -CONSTRAIN(accelCmd.x/cD, -maxTiltAngle, maxTiltAngle);
-      float targetR23 = -CONSTRAIN(accelCmd.y/cD, -maxTiltAngle, maxTiltAngle);
+      float targetR13 = -CONSTRAIN(accelCmd.x/cD, -sin(maxTiltAngle), sin(maxTiltAngle));
+      float targetR23 = -CONSTRAIN(accelCmd.y/cD, -sin(maxTiltAngle), sin(maxTiltAngle));
 
       p_cmd = (1.0 / R(2,2)) * ( -R(1,0) *  kpBank * ( R(0,2) - targetR13 ) + R(0,0) * kpBank * ( R(1,2) - targetR23 ));
       q_cmd = (1.0 / R(2,2)) * ( -R(1,1) *  kpBank * ( R(0,2) - targetR13 ) + R(0,1) * kpBank * ( R(1,2) - targetR23 ));
@@ -209,22 +209,41 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-  float zdot_cmd = kpPosZ * (posZCmd - posZ) + velZCmd;
-  CONSTRAIN(zdot_cmd, -maxDescentRate, maxAscentRate);
+//   float zdot_cmd = kpPosZ * (posZCmd - posZ) + velZCmd;
+//   CONSTRAIN(zdot_cmd, -maxDescentRate, maxAscentRate);
+
+//   float altErr = posZCmd - posZ;
+
+//   integratedAltitudeError += dt * altErr;
+
+
+// //  float accelCmd = accelZCmd + kpVelZ * (zdot_cmd - velZ) + KiPosZ * integratedAltitudeError;
+
+//   velZCmd = CONSTRAIN(velZCmd, -maxDescentRate, maxDescentRate);
+// //  float accelCmd = accelZCmd + kpPosZ * (posZCmd - posZ) + kpVelZ * (velZCmd - velZ) + KiPosZ * integratedAltitudeError;
+//   float accelCmd = accelZCmd + kpPosZ * (posZCmd - posZ) + kpVelZ * (velZCmd - velZ);
+
+// //  float R33 = cos(attitude[0]) * cos(attitude[1]);
+//   thrust = mass * (9.81f - accelCmd) / R(2,2);
+
+//   thrust = CONSTRAIN(thrust, 0.0, MAX_THRUST);
+
+////////////////////////////////////
+
+  // zdot_cmd = CONSTRAIN(zdot_cmd, -maxDescentRate, maxAscentRate);
 
   float altErr = posZCmd - posZ;
-
   integratedAltitudeError += dt * altErr;
 
+  float zdot = kpPosZ * altErr + velZCmd + KiPosZ * integratedAltitudeError;
+  zdot = -CONSTRAIN(-zdot, -maxAscentRate, maxDescentRate);
 
-//  float accelCmd = accelZCmd + kpVelZ * (zdot_cmd - velZ) + KiPosZ * integratedAltitudeError;
+  float accelCmd = accelZCmd  + kpVelZ * (zdot - velZ);
 
-  velZCmd = CONSTRAIN(velZCmd, -maxDescentRate, maxDescentRate);
-//  float accelCmd = accelZCmd + kpPosZ * (posZCmd - posZ) + kpVelZ * (velZCmd - velZ) + KiPosZ * integratedAltitudeError;
-  float accelCmd = accelZCmd + kpPosZ * (posZCmd - posZ) + kpVelZ * (velZCmd - velZ);
-
-//  float R33 = cos(attitude[0]) * cos(attitude[1]);
+  // float R33 = cos(attitude[0]) * cos(attitude[1]);
+  // thrust = mass * accelCmd / R(2,2);
   thrust = mass * (9.81f - accelCmd) / R(2,2);
+  // thrust = mass * (9.81f - (accelCmd / R(2,2)));
 
   thrust = CONSTRAIN(thrust, 0.0, MAX_THRUST);
 
@@ -284,7 +303,8 @@ V3F QuadControl::LateralPositionControl(V3F posCmd, V3F velCmd, V3F pos, V3F vel
     accelerationCmd = accelerationCmd * maxAccelXY / accelerationNorm;
   }
   
-  accelCmd += accelerationCmd;
+  // accelCmd += accelerationCmd;
+  accelCmd = accelerationCmd;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
