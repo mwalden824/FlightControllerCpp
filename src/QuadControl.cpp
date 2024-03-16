@@ -195,19 +195,6 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
   float thrust = 0;
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-
-  // float altErr = posZCmd - posZ;
-  // integratedAltitudeError += dt * altErr;
-
-  // float zdot = kpPosZ * altErr + velZCmd + KiPosZ * integratedAltitudeError;
-  // zdot = CONSTRAIN(zdot, -maxDescentRate, maxAscentRate);
-
-  // float accelCmd = accelZCmd  + kpVelZ * (zdot - velZ);
- 
-  // thrust = mass * (9.81f - accelCmd) / R(2,2);
-
-  //////////////////////////////
-
   float zErr = posZCmd - posZ;
   float zDotErr = velZCmd - velZ;
 
@@ -218,8 +205,6 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
   float iTerm = KiPosZ * integratedAltitudeError;
 
   float accelCmd = accelZCmd + pTerm + dTerm + iTerm;
-
-  // accelCmd = CONSTRAIN()
 
   thrust = mass * (9.81f - accelCmd) / R(2,2);
 
@@ -258,40 +243,15 @@ V3F QuadControl::LateralPositionControl(V3F posCmd, V3F velCmd, V3F pos, V3F vel
   V3F accelCmd = accelCmdFF;
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-  // V3F velocityCmd;
-  // V3F accelerationCmd;
-  // float velocityNorm;
-  // float accelerationNorm;
-
-  // velocityCmd = kpPosXY * (posCmd - pos);
-  // velocityNorm = sqrtf(velocityCmd[0]*velocityCmd[0] + velocityCmd[1]*velocityCmd[1]);
-
-  // if (velocityNorm > maxSpeedXY)
-  // {
-  //   velocityCmd = velocityCmd * maxSpeedXY / velocityNorm;
-  // }
-
-  // accelerationCmd = accelCmdFF + kpPosXY * (posCmd - pos) + kpVelXY * (velocityCmd - vel);
-  // accelerationNorm = sqrtf(accelerationCmd[0]*accelerationCmd[0] + accelerationCmd[1]*accelerationCmd[1]);
-
-  // if (accelerationNorm > maxAccelXY)
-  // {
-  //   accelerationCmd = accelerationCmd * maxAccelXY / accelerationNorm;
-  // }
-  
-  // accelCmd = accelerationCmd;
-
-  /////////////////////////////////
-
-  V3F cappedVelCmd;
+  V3F velocityCmd;
   if (velCmd.mag() > maxSpeedXY) {
-      cappedVelCmd = velCmd.norm() * maxSpeedXY;
+      velocityCmd = velCmd.norm() * maxSpeedXY;
   }
   else {
-      cappedVelCmd = velCmd;
+      velocityCmd = velCmd;
   }
   V3F posErr = posCmd - pos;
-  V3F velErr = cappedVelCmd - vel;
+  V3F velErr = velocityCmd - vel;
   accelCmd = kpPosZ * posErr + kpVelZ * velErr + accelCmd;
 
   // constrain the commanded acceleration
